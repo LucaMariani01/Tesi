@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static main.java.BioJavaHandler.biojavaGenPdb;
@@ -35,7 +34,6 @@ public class Main {
                 if (cmd.hasOption("i") && cmd.hasOption("o")) {
                     String fileJson = cmd.getOptionValue("i");
                     String outputPath = cmd.getOptionValue("o");
-                    ArrayList<String> bondList = new ArrayList<>();
 
                     if(!(fileJson.isEmpty() && outputPath.isEmpty())){
 
@@ -65,7 +63,7 @@ public class Main {
                         }
                         if(cuttedPDBdir.mkdir()) System.out.println("PDB REFACTORED DIRECTORY CREATED CORRECTLY");
 
-                        if (cmd.hasOption("b")) bondList = new ArrayList<>( Arrays.asList(cmd.getOptionValues("b") ));
+                        //if (cmd.hasOption("b")) bondList = new ArrayList<>( Arrays.asList(cmd.getOptionValues("b") ));
 
                         Path aasDir = Paths.get( outputPath+"/aas");
                         File aasDirectory = new File(aasDir.toString());
@@ -82,25 +80,6 @@ public class Main {
                             Files.delete(ringDir);
                         }
                         if(ringDirectory.mkdir()) System.out.println("RING RESULT DIRECTORY CREATED CORRECTLY");
-
-                        File timesDirectory = null;
-
-                        if (cmd.hasOption("t")) {
-
-                            timesDirectory = new File(cmd.getOptionValue("t")+"/execTimes.csv");
-                            Path fileTimesPath = Paths.get(cmd.getOptionValue("t"), "execTimes.csv");
-                            if (Files.exists(fileTimesPath)) {
-                                Files.delete(Paths.get(cmd.getOptionValue("t")+"/execTimes.csv"));
-                            }
-                            if(timesDirectory.createNewFile()){
-                                try {
-                                    FileWriter writer = new FileWriter(timesDirectory, true);
-                                    writer.write("ReadingfPDBFromJSON" + ";" +  "RingExecutionTime" + ";" + "GeneratingAASTime" + "\n");
-                                    writer.close();
-                                } catch (IOException e) {throw new RuntimeException(e);}
-                                System.out.println("EXECUTION TIME CSV FILE CREATED CORRECTLY");
-                            }
-                        }
 
                         FileJsonManager fileReader = new FileJsonManager();
                         ArrayList<PDB> pdbList;
@@ -126,19 +105,11 @@ public class Main {
                                     }
                                 }else System.out.println("Analyze pdb: "+ singlePDB.getRepeatsdbId());
 
-                                long startJsonMs= System.currentTimeMillis();
-                                biojavaGenPdb(outputPath,cuttedPDBdir.toString(),singlePDB, unitNumberCount,fileNameCsvLabel);
-                                long endJsonMs = System.currentTimeMillis();
 
-                                long starRingMs= System.currentTimeMillis();
+                                biojavaGenPdb(outputPath,cuttedPDBdir.toString(),singlePDB, unitNumberCount,fileNameCsvLabel);
 
                                 Ring.ringManager(singlePDB, ringDirectory.toString(),cuttedPDBdir.toString(),unitNumberCount);  //passiamo il pdb corrente, il path di destinazione, e i legami da analizzare
-                                long endRingMs= System.currentTimeMillis();
-
-                                long startAasMs = System.currentTimeMillis();
-                                AasFileGenerator.aasFileGeneratorMain(singlePDB,singlePDB.getStart(),outputPath,bondList,ringDirectory.toString(),unitNumberCount);
-                                long endAasMs = System.currentTimeMillis();
-                                if( cmd.hasOption("t")) TimeController.executionTimeManager(endJsonMs-startJsonMs,endRingMs-starRingMs,endAasMs-startAasMs,timesDirectory.toString() );
+                                AasFileGenerator.aasFileGeneratorMain(singlePDB,singlePDB.getStart(),outputPath,ringDirectory.toString(),unitNumberCount);
                                 if(unitNumberCount != -1) lastPDBread = Optional.of(singlePDB);
                             }
                         }
@@ -161,11 +132,6 @@ public class Main {
         Option outputOption = new Option("o","output",true,"Insert the path where RING and AAS files will be saved.");
         options.addOption(outputOption);
 
-        Option bondOption = new Option("b","bond",true,"Insert the bond that you want to analyze. EX: (HBOND, IONIC, VDW, IAC, PICATION, PIPISTACK, SSBOND)");
-        options.addOption(bondOption);
-
-        Option timeOption = new Option("t","time",true, "Insert the path where csv file containing execution time will be saved");
-        options.addOption(timeOption);
 
         Option unitOption = new Option("u","unit",false,"This option calculate AAS file for every unit of JSON dataset ");
         options.addOption(unitOption);

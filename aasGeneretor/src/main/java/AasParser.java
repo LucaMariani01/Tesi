@@ -13,7 +13,7 @@ public class AasParser {
      * @return the content of the aas formatted file
      *
      */
-    public ArrayList<String> readerEdges(File pdbEdgesFile,int start, ArrayList<String> selectedBond){
+    public ArrayList<String> readerEdges(File pdbEdgesFile,int start){
 
         ArrayList<String>  result = new ArrayList<>();
         StringBuilder aminoAcidList = new StringBuilder();
@@ -28,18 +28,8 @@ public class AasParser {
                     String[] lineItems = line.split(":");
                     aminoAcidList.append(this.parser(lineItems[3].substring(0, 3))).append(this.parser(lineItems[7].substring(0, 3)));
                     if (lastBond.compareTo("(" + ((Integer.parseInt(lineItems[1]) - start) + 1) + "," + ((Integer.parseInt(lineItems[5]) - start) + 1) + ");")!=0) {
-                        if(!selectedBond.isEmpty()){
-                            for(String bond : selectedBond){
-                                if(lineItems[3].contains(bond)){
-                                    bondList.append("(").append((Integer.parseInt(lineItems[1]) - start) + 1).append(",").append((Integer.parseInt(lineItems[5]) - start) + 1).append(");");
-                                    lastBond= "(" + ((Integer.parseInt(lineItems[1]) - start) + 1) + "," + ((Integer.parseInt(lineItems[5]) - start) + 1) + ");";//save last bond to avoid duplicate
-                                }
-                            }
-                        }else{
-                            bondList.append("(").append((Integer.parseInt(lineItems[1]) - start) + 1).append(",").append((Integer.parseInt(lineItems[5]) - start) + 1).append(");");
-                            lastBond= "(" + ((Integer.parseInt(lineItems[1]) - start) + 1) + "," + ((Integer.parseInt(lineItems[5]) - start) + 1) + ");";//save last bond to avoid duplicate
-                        }
-
+                        bondList.append("(").append((Integer.parseInt(lineItems[1]) - start) + 1).append(",").append((Integer.parseInt(lineItems[5]) - start) + 1).append(");");
+                        lastBond= "(" + ((Integer.parseInt(lineItems[1]) - start) + 1) + "," + ((Integer.parseInt(lineItems[5]) - start) + 1) + ");";//save last bond to avoid duplicate
                     }
                 }
             }
