@@ -27,11 +27,17 @@ public class CreateMatrix {
     }
 
     private int [][] buildMatrix(File file, int start,int end) {
-        int matrixSize = end -start;
+        int matrixSize = (end -start) + 1;
         int [][] matrix = new int[matrixSize][matrixSize];
         boolean cont = true;
 
         Arrays.stream(matrix).forEach(row -> Arrays.fill(row,0));
+        int index = start;
+        for (int x=1 ;  x< matrixSize;x++){
+            matrix[0][x] = index;
+            matrix[x][0] = index;
+            index++;
+        }
 
         try (BufferedReader pdbEdgesReader = new BufferedReader(new FileReader(file))) {
             String line;
@@ -39,14 +45,20 @@ public class CreateMatrix {
                 if(cont) cont=false;
                 else {
                     String[] lineItems = line.split(":");
-                    int x =Integer.parseInt(lineItems[1]);
-                    int y = Integer.parseInt(lineItems[5]);
+                    int x = this.findPosition(matrix,Integer.parseInt(lineItems[1]));
+                    int y = this.findPosition(matrix,Integer.parseInt(lineItems[5]));
                     matrix[x][y] = 1;
                     matrix[y][x] = 1;
-
                 }
             }
         } catch (Exception e) { System.out.println("Something went wrong during aas generation: "+e); }
        return matrix;
+    }
+
+    private int findPosition( int [][] matrix, int val){
+        for (int x=1 ;  x< matrix[0].length ;x++){
+            if (matrix[0][x] == val) return x;
+        }
+        return -1;
     }
 }
